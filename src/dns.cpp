@@ -757,8 +757,16 @@ DNSResult DNS::GetResult()
 				/* Identical handling to PTR */
 
 			case DNS_QUERY_PTR:
+			{
 				/* Reverse lookups just come back as char* */
 				resultstr = std::string((const char*)data.first);
+				if (resultstr.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-") != std::string::npos)
+				{
+					std::string ro = req->orig;
+					delete req;
+					return DNSResult(this_id | ERROR_MASK, "Invalid char(s) in reply", 0, ro);
+				}
+			}
 			break;
 
 			default:
@@ -840,7 +848,7 @@ DNSInfo DNSRequest::ResultIsReady(DNSHeader &header, int length)
 				else i += header.payload[i] + 1; /* skip length and label */
 			}
 		}
-		if (length - i < 10)
+		if (static_cast<int>(length - i) < 10)
 			return std::make_pair((unsigned char*)NULL,"Incorrectly sized DNS reply");
 
 		/* XXX: We actually initialise 'rr' here including its ttl field */
