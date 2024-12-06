@@ -186,7 +186,6 @@ public:
 		{
 			throw SQLbadColName();
 		}
-		Close();
 	}
 
 	virtual SQLfieldList& GetRow()
@@ -747,9 +746,6 @@ class SQLConn : public EventHandler
 				ServerInstance->Logs->Log("m_pgsql",DEBUG, "BUG: PQsocket cant be removed from socket engine!");
 			}
 		}
-
-		if (GetFd() != -1 && ServerInstance->SE->HasFd(GetFd()))
-			ServerInstance->SE->DelFd(this);
 
 		if(sql)
 		{
