@@ -186,7 +186,6 @@ public:
 		{
 			throw SQLbadColName();
 		}
-		Close();
 	}
 
 	virtual SQLfieldList& GetRow()
@@ -737,9 +736,6 @@ class SQLConn : public EventHandler
 	void Close()
 	{
 		ServerInstance->SE->DelFd(this);
-
-		if (GetFd() != -1 && ServerInstance->SE->HasFd(GetFd()))
-			ServerInstance->SE->DelFd(this);
 
 		if(sql)
 		{
