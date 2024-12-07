@@ -560,8 +560,13 @@ class ModulePgSQL : public Module
 			if (curr == connections.end())
 			{
 				SQLConn* conn = new SQLConn(this, i->second);
-				conns.insert(std::make_pair(id, conn));
-				ServerInstance->Modules->AddService(*conn);
+				if (conn->status != DEAD)
+				{
+					conns.insert(std::make_pair(id, conn));
+					ServerInstance->Modules->AddService(*conn);
+				}
+				// If the connection is dead it has already been queued for culling
+				// at the end of the main loop so we don't need to delete it here.
 			}
 			else
 			{
@@ -628,16 +633,15 @@ bool ReconnectTimer::Tick(time_t time)
 void SQLConn::DelayReconnect()
 {
 	ModulePgSQL* mod = (ModulePgSQL*)(Module*)creator;
+
 	ConnMap::iterator it = mod->connections.find(conf->getString("id"));
 	if (it != mod->connections.end())
-	{
 		mod->connections.erase(it);
-		ServerInstance->GlobalCulls.AddItem((EventHandler*)this);
-		if (!mod->retimer)
-		{
-			mod->retimer = new ReconnectTimer(mod);
-			ServerInstance->Timers.AddTimer(mod->retimer);
-		}
+	ServerInstance->GlobalCulls.AddItem((EventHandler*)this);
+	if (!mod->retimer)
+	{
+		mod->retimer = new ReconnectTimer(mod);
+		ServerInstance->Timers.AddTimer(mod->retimer);
 	}
 }
 
