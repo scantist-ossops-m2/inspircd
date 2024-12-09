@@ -168,6 +168,7 @@ class SQLConn : public SQLProvider, public EventHandler
 			q->OnError(err);
 			delete q;
 		}
+		Close();
 	}
 
 	virtual void HandleEvent(EventType et, int errornum)
@@ -482,6 +483,9 @@ restart:
 	{
 		status = DEAD;
 		ServerInstance->SE->DelFd(this);
+
+		if (GetFd() != -1 && ServerInstance->SE->HasFd(GetFd()))
+			ServerInstance->SE->DelFd(this);
 
 		if(sql)
 		{
