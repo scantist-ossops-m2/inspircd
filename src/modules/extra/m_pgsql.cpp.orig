@@ -205,6 +205,7 @@ class SQLConn : public SQL::Provider, public EventHandler
 			q->OnError(err);
 			delete q;
 		}
+		Close();
 	}
 
 	void OnEventHandlerRead() CXX11_OVERRIDE
@@ -509,6 +510,9 @@ restart:
 	void Close()
 	{
 		SocketEngine::DelFd(this);
+
+		if (GetFd() != -1 && ServerInstance->SE->HasFd(GetFd()))
+			ServerInstance->SE->DelFd(this);
 
 		if(sql)
 		{
